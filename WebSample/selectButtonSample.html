@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>セレクトボタンサンプル</title>
+	<style>
+		#buttonlist {
+			position: fixed;
+			padding: 1rem 2rem 1rem 2rem;
+			background: green;
+		}
+
+		.mybutton {
+			display:block;
+			color: white;
+			background-color: black;
+			font-size: 2rem;
+			padding: 0rem 1rem 0rem 1rem;
+			border: none;
+		}
+
+		.mybutton:hover {
+			background-color: gray;
+		}
+
+		.mybutton::after {
+			content: "A";
+		}
+
+		.mybutton::before {
+			content: "B ";
+		}
+		.mark {
+			width:2rem;
+			height:2rem;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="buttonlist">
+		<button id="button1" class="mybutton"><span>　</span>テキスト1</button>
+		<button id="button2" class="mybutton"><span>　</span>テキスト2</button>
+		<button id="button3" class="mybutton"><span>　</span>テキスト3</button>
+		<button id="button4" class="mybutton"><span>　</span>テキスト4</button>
+	</div>
+	<script>
+		let btnlist = document.getElementById("buttonlist");
+		_setEnableButton(buttonlist.children[0]);
+
+		// ボタンクリックのコールバック関数を登録.
+		Array.from(buttonlist.children).forEach(btn => {
+			btn.addEventListener('click', _buttonClick);
+		});
+		//for (let i = 0; i < buttonlist.childElementCount; ++i) {
+		//	let btn = buttonlist.children[i];
+		//	btn.addEventListener('click', _buttonClick);
+		//}
+
+		// ボタンクリックのコールバック関数.
+		function _buttonClick() {
+			_setEnableButton(this);
+			return;
+		}
+
+		// カレントボタンを強調表示.
+		function _setEnableButton(currentBtn) {
+			Array.from(buttonlist.children).forEach(btn => {
+				let span = btn.getElementsByTagName("span");
+				if (btn === currentBtn) {
+					//span[0].innerHTML = '▶';
+					span[0].innerHTML = "<img src='images/check.png' class='mark'>"
+				} else {
+					span[0].innerHTML = '　';
+				}
+			});
+		}
+	</script>
+</body>
+</html>
