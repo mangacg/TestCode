@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>文字描画 サンプル</title>
+</head>
+<body>
+    <canvas id="canvas" ></canvas>
+  <script>
+	console.log('Start Sample');
+
+    let update = function() {
+        let canvas    = document.getElementById('canvas');
+        canvas.width  = document.documentElement.clientWidth;
+        canvas.height = document.documentElement.clientHeight;
+        let ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = "rgb(128, 128, 128)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        //ctx.drawImage(mycanvas, 10, 10);
+        ctx.drawImage(myimage, 10, 10);
+    };
+
+    window.onload = function() {
+        console.log('onload');
+        update();
+    };
+
+    window.onresize = function() {
+        console.log('onresize');
+        update();
+    };
+
+    let drawDebugImage = function(canvas, bgColor, text0, text1, viewmode=false) {
+		const width  = canvas.width;
+		const height = canvas.height;
+		const ctx    = canvas.getContext('2d');
+
+		// クリア
+        ctx.fillStyle = bgColor; // "rgb(255,  128, 128)";
+        ctx.fillRect(0, 0, width, height);
+
+		// 外枠描画.
+		ctx.strokeStyle = '#ffff';
+		ctx.lineWidth   = 2;
+		if (viewmode) {
+			ctx.strokeStyle = "rgb(128, 255, 255)"
+			ctx.lineWidth   = 64;
+		}
+        ctx.strokeRect(0, 0, width, height);
+
+		// 十字描画.
+		ctx.strokeStyle = '#fff4';
+		ctx.lineWidth   = 2;
+		ctx.beginPath();
+		ctx.moveTo(width / 2, 0);
+		ctx.lineTo(width / 2, height);
+		ctx.moveTo(0,     height / 2);
+		ctx.lineTo(width, height / 2);
+		ctx.stroke();
+
+		// 文字0描画.
+		ctx.font   = String(width * 0.5) + 'pt Times'; // '123pt Times';
+		if (viewmode) {
+			ctx.font   = String(width * 0.17) + 'pt Times'; // '123pt Times';
+		}
+        let mesure = ctx.measureText( text0 );
+        let textW  =  mesure.width;
+        let textH  =  mesure.actualBoundingBoxAscent + mesure.actualBoundingBoxDescent;
+
+        let x    = (width  - textW) * 0.5;
+        let y    = (height + textH) * 0.5;
+
+        ctx.fillStyle = '#fff';
+        ctx.fillText(text0, x, y);
+
+		/*
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        ctx.strokeText(text0, x, y);
+		*/
+
+		// 文字1描画.
+		if (text1) {
+			ctx.font   = String(width * 0.07) + 'pt Times';
+			mesure = ctx.measureText( text1 );
+			textW  =  mesure.width;
+			textH  =  mesure.actualBoundingBoxAscent + mesure.actualBoundingBoxDescent;
+			x      = (width  - textW) * 0.5;
+			y      = (height + textH) * 0.5 - height * 0.3;
+
+			ctx.fillStyle = '#fff';
+			ctx.fillText(text1, x, y);
+			/*
+			ctx.strokeStyle = '#000';
+			ctx.lineWidth = 1;
+			ctx.strokeText(text1, x, y);
+			*/
+		}
+
+		// Image生成.
+		let image = new Image();
+		image.src = canvas.toDataURL();
+		image.onload = ()=>{
+			// console.log("test Image load done. : " + text0);
+		};
+		return image;
+	}
+
+    let mycanvas = document.createElement('canvas');
+    //let myctx = mycanvas.getContext('2d');
+
+    //mycanvas.width  = 1024;
+    //mycanvas.height = 1024;
+    mycanvas.width  = 512;
+    mycanvas.height = 512;
+	let myimage = drawDebugImage(mycanvas, "rgb(255,  128, 128)", "5", "[1024]");
+
+    //mycanvas.width  = 512;
+    //mycanvas.height = 512;
+	//drawDebugImage(mycanvas, "rgb(255,  128, 128)", "5", null);
+	//drawDebugImage(mycanvas, "rgb(255,  128, 128)", "View", null, true);
+
+</script>
+</body>
+</html>

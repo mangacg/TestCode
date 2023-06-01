@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ペイント サンプル</title>
+</head>
+<body>
+  <canvas id="canvas" ></canvas>
+  <script src="./paintController.js?v={{ $version_stamp }}"></script>
+  <script src="./paintPanel.js?v={{ $version_stamp }}"></script>
+  <script>
+	console.log('Start PaintSample');
+
+	let _controller;
+
+    let start = function() {
+        let canvas    = document.getElementById('canvas');
+        canvas.width  = document.documentElement.clientWidth;
+        canvas.height = document.documentElement.clientHeight;
+        let ctx = canvas.getContext('2d');
+
+        //ctx.fillStyle = "rgb(128, 128, 128)";
+        //ctx.fillRect(0, 0, canvas.width, canvas.height);
+        //ctx.drawImage(mycanvas, 10, 10);
+
+		_controller = new paintController(canvas);
+		_controller.init();
+    };
+
+    window.onload = function() {
+        console.log('onload');
+        start();
+    };
+
+    window.onresize = function() {
+        console.log('onresize');
+        // update();
+    };
+
+</script>
+</body>
+</html>
