@@ -7,22 +7,21 @@ let drawPopUpImage = function(canvas, bgColor, text0, text1, viewmode=false) {
 
 	let strSize = drawString(ctx, text, fontSize, 0, 0, false); // 文字列の描画サイズを取得.
 
-	const x0 = 0;
-	const y0 = 0;
-	const w  = strSize[0]; // 300;
-	const h  = strSize[1]; // 100;
-	const x1 = x0 + w;
-	const y1 = y0 + h;
-	const fl = 50;// 吹き出しの長さ.
-	const f0 = 0.4; // 吹き出しの位置さ.
-	const f1 = 0.5;
-	// const dir = "down";
-	const dir = "up";
 	const mgn = 4; // 文字まわりのマージン
 	const mgn2 = mgn * 2; // マージン * 2
 
+	let info = {};
+	info.w  = strSize[0] + mgn2; // 300;
+	info.h  = strSize[1] + mgn2; // 100;
+	info.x0 = 0;
+	info.y0 = 0;
+	info.fl = 50;// 吹き出しの長さ.
+	info.f0 = 0.4; // 吹き出しの位置さ.
+	info.f1 = 0.5;
+	info.dir = "up"; // "down";
+
 	// 吹き出しのbboxを取得.
-	let bb = drawFukidaShi(ctx, x0, y0, w + mgn2, h + mgn2, fl, f0, f1, dir, 0, 0, false);
+	let bb = drawFukidaShi(ctx, info, 0, 0, false);
 
 	canvas.width  = bb.maxx - bb.minx + mgn2;
 	canvas.height = bb.maxy - bb.miny + mgn2;
@@ -36,10 +35,9 @@ let drawPopUpImage = function(canvas, bgColor, text0, text1, viewmode=false) {
 	const offsetx = -bb.minx + mgn; // 吹き出しまわりのマージン.
 	const offsety = -bb.miny + mgn;
 
-	drawFukidaShi(ctx, x0, y0, w + mgn2, h + mgn2, fl, f0, f1, dir, offsetx, offsety);
+	drawFukidaShi(ctx, info, offsetx, offsety);
 
 	drawString(ctx, text, fontSize, offsetx + mgn, offsety + mgn);
-
 
 	// Image生成.
 	let image = new Image();
@@ -53,13 +51,15 @@ let drawPopUpImage = function(canvas, bgColor, text0, text1, viewmode=false) {
 /**
  * 吹き出しの描画.
  */
-let drawFukidaShi = function(ctx, x0, y0, w, h, fl, f0, f1, dir, offsetx=0, offsety=0, isDraw=true) {
+let drawFukidaShi = function(ctx, info, offsetx=0, offsety=0, isDraw=true) {
 	function _lerp(a, b, t) {
 		return a + (b - a) * t;
 	};
 
-	const x1 = x0 + w;
-	const y1 = y0 + h;
+	const x0 = info.x0;
+	const y0 = info.y0;
+	const x1 = x0 + info.w;
+	const y1 = y0 + info.h;
 
 	let path = [];
 	// 矩形.
@@ -69,31 +69,32 @@ let drawFukidaShi = function(ctx, x0, y0, w, h, fl, f0, f1, dir, offsetx=0, offs
 	path.push( [x0, y1] );
 
 	// 矩形に吹き出しの尖った部分を追加.
-	if (dir === "left") {
+	if (info.dir === "left") {
 		path.splice(4, 0,
-					[x0,      _lerp(y1, y0, f0)],
-					[x0 - fl, _lerp(y1, y0, f1)],
-					[x0,      _lerp(y1, y0, f1)] );
-	} else if (dir === "down") {
+					[x0,      _lerp(y1, y0, info.f0)],
+					[x0 - fl, _lerp(y1, y0, info.f1)],
+					[x0,      _lerp(y1, y0, info.f1)] );
+	} else if (info.dir === "down") {
 		path.splice(3, 0,
-					[_lerp(x1, x0, f0), y1],
-					[_lerp(x1, x0, f1), y1 + fl],
-					[_lerp(x1, x0, f1), y1] );
-	} else if (dir === "right") {
+					[_lerp(x1, x0, info.f0), y1],
+					[_lerp(x1, x0, info.f1), y1 + info.fl],
+					[_lerp(x1, x0, info.f1), y1] );
+	} else if (info.dir === "right") {
 		path.splice(2, 0,
-					[x1,      _lerp(y0, y1, f0)],
-					[x1 + fl, _lerp(y0, y1, f1)],
-					[x1,      _lerp(y0, y1, f1)] );
+					[x1,      _lerp(y0, y1, info.f0)],
+					[x1 + fl, _lerp(y0, y1, info.f1)],
+					[x1,      _lerp(y0, y1, info.f1)] );
 
-	} else if (dir === "up") {
+	} else if (info.dir === "up") {
 		path.splice(1, 0,
-					[_lerp(x0, x1, f0), y0],
-					[_lerp(x0, x1, f1), y0 - fl],
-					[_lerp(x0, x1, f1), y0] );
+					[_lerp(x0, x1, info.f0), y0],
+					[_lerp(x0, x1, info.f1), y0 - info.fl],
+					[_lerp(x0, x1, info.f1), y0] );
 	}
 
 	if (!isDraw) {
-		let bb = { minx:path[0][0], maxx:path[0][0], miny:path[0][1], maxy:path[0][1] };
+		//let bb = { minx:path[0][0], maxx:path[0][0], miny:path[0][1], maxy:path[0][1] };
+		let bb = { minx:Infinity, maxx:-Infinity, miny:Infinity, maxy:-Infinity };
 		for (let pos of path) {
 			bb.minx = Math.min(bb.minx, pos[0]);
 			bb.maxx = Math.max(bb.maxx, pos[0]);

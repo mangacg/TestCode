@@ -19,26 +19,25 @@
 	let imgy = 100;
 	
     let update = function() {
-        let img = document.getElementById('popupimg');
-		img.src = myimage.src;
-		img.style.position = "absolute";
-		img.width      = myimage.width;
-		img.height     = myimage.height;
-		//img.style.left = 10 + "px";
-		//img.style.top  = 100 + "px";
-		img.style.left = imgx + "px";
-		img.style.top  = imgy + "px";
-		/*
+        let img    = document.getElementById('popupimg');
+		img.src    = myimage.src;
+		img.width  = myimage.width;
+		img.height = myimage.height;
+		// img.style.position = "absolute";
+		//img.style.left = 10 + "pt";
+		//img.style.top  = 100 + "pt";
+		img.style.left = imgx + "pt";
+		img.style.top  = imgy + "pt";
+
+		// 背景をクリア.
         let canvas    = document.getElementById('canvas');
         canvas.width  = document.documentElement.clientWidth;
         canvas.height = document.documentElement.clientHeight;
-        let ctx = canvas.getContext('2d');
-
+        let ctx       = canvas.getContext('2d');
         ctx.fillStyle = "rgb(128, 128, 128)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         //ctx.drawImage(mycanvas, 10, 10);
-        ctx.drawImage(myimage, 10, 10);
-		*/
+        // ctx.drawImage(myimage, 10, 10);
     };
 
     let updateVisible = function(isVisible) {
@@ -47,11 +46,11 @@
 	}
 
     let updatePos = function(x, y) {
-        let img = document.getElementById('popupimg');
-		imgx += x;
-		imgy += y;
-		img.style.left = imgx + "px";
-		img.style.top  = imgy + "px";
+        let img        = document.getElementById('popupimg');
+		imgx           += x;
+		imgy           += y;
+		img.style.left = imgx + "pt";
+		img.style.top  = imgy + "pt";
 	}
 
 
