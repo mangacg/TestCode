@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>文字描画 サンプル</title>
+  <style>
+  #popupimg{
+	  position: absolute;
+  }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" ></canvas>
+  <img src="" width="100" id="popupimg">
+  <script src="./drawPopUpSample.js?v={{ $version_stamp }}"></script>
+  <script>
+	console.log('Start Sample');
+
+	let imgx = 10;
+	let imgy = 100;
+	
+    let update = function() {
+        let img = document.getElementById('popupimg');
+		img.src = myimage.src;
+		img.style.position = "absolute";
+		img.width      = myimage.width;
+		img.height     = myimage.height;
+		//img.style.left = 10 + "px";
+		//img.style.top  = 100 + "px";
+		img.style.left = imgx + "px";
+		img.style.top  = imgy + "px";
+		/*
+        let canvas    = document.getElementById('canvas');
+        canvas.width  = document.documentElement.clientWidth;
+        canvas.height = document.documentElement.clientHeight;
+        let ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = "rgb(128, 128, 128)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        //ctx.drawImage(mycanvas, 10, 10);
+        ctx.drawImage(myimage, 10, 10);
+		*/
+    };
+
+    let updateVisible = function(isVisible) {
+        let img = document.getElementById('popupimg');
+		img.style.visibility = isVisible ? "visible" : "hidden";
+	}
+
+    let updatePos = function(x, y) {
+        let img = document.getElementById('popupimg');
+		imgx += x;
+		imgy += y;
+		img.style.left = imgx + "px";
+		img.style.top  = imgy + "px";
+	}
+
+
+    window.onload = function() {
+        console.log('onload');
+        update();
+    };
+
+    window.onresize = function() {
+        console.log('onresize');
+        update();
+    };
+
+    window.onkeydown = (event) => {
+        console.log('onkeydown');
+		if (event.code === "KeyV") {
+			updateVisible(true);
+		}
+		if (event.code === "KeyH") {
+			updateVisible(false);
+		}
+		if (event.code === "KeyN") {
+			updatePos(0, 5);
+		}
+		if (event.code === "KeyP") {
+			updatePos(0, -5);
+		}
+    };
+
+    let mycanvas = document.createElement('canvas');
+
+    mycanvas.width  = 512;
+    mycanvas.height = 512;
+	// let myimage = drawFontImage(mycanvas, "rgb(255,  128, 128)", "5", "[1024]");
+	let myimage = drawPopUpImage(mycanvas, "rgb(255,  128, 128)", "5", "[1024]");
+
+	//drawDebugImage(mycanvas, "rgb(255,  128, 128)", "5", null);
+	//drawDebugImage(mycanvas, "rgb(255,  128, 128)", "View", null, true);
+
+</script>
+</body>
+</html>
