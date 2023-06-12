@@ -251,6 +251,8 @@ class Mathf
 	}
 };
 
+var CV = CV || {};
+
 (function(namespace) {
 	'use strict';
 

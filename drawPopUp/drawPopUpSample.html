@@ -9,86 +9,76 @@
   </style>
 </head>
 <body>
-  <canvas id="canvas" ></canvas>
-  <img src="" width="100" id="popupimg">
-  <script src="./drawPopUpSample.js?v={{ $version_stamp }}"></script>
-  <script>
-	console.log('Start Sample');
+	<canvas id="canvas" ></canvas>
+	<img src="" width="100" id="popupimg">
+	<script src="./cv_math.js?v={{ $version_stamp }}"></script>
+	<script src="./cv_annotationpopup.js?v={{ $version_stamp }}"></script>	
+	<!-- <script src="./drawPopUpSample.js?v={{ $version_stamp }}"></script> -->
+	<script>
 
-	let imgx = 10;
-	let imgy = 100;
-	
-    let update = function() {
-        let img    = document.getElementById('popupimg');
-		img.src    = myimage.src;
-		img.width  = myimage.width;
-		img.height = myimage.height;
-		// img.style.position = "absolute";
-		//img.style.left = 10 + "pt";
-		//img.style.top  = 100 + "pt";
-		img.style.left = imgx + "pt";
-		img.style.top  = imgy + "pt";
+console.log('Start Sample');
 
-		// 背景をクリア.
-        let canvas    = document.getElementById('canvas');
-        canvas.width  = document.documentElement.clientWidth;
-        canvas.height = document.documentElement.clientHeight;
-        let ctx       = canvas.getContext('2d');
-        ctx.fillStyle = "rgb(128, 128, 128)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        //ctx.drawImage(mycanvas, 10, 10);
-        // ctx.drawImage(myimage, 10, 10);
-    };
+let imgx = 10;
+let imgy = 100;
 
-    let updateVisible = function(isVisible) {
-        let img = document.getElementById('popupimg');
-		img.style.visibility = isVisible ? "visible" : "hidden";
+let popUpImage = new CV.AnnotationPopUpImage();
+let myimage    = popUpImage.createImage();
+
+let update = function() {
+    let img    = document.getElementById('popupimg');
+	img.src    = myimage.src;
+	img.width  = myimage.width;
+	img.height = myimage.height;
+	img.style.left = imgx + "pt";
+	img.style.top  = imgy + "pt";
+
+	// 背景をクリア.
+    let canvas    = document.getElementById('canvas');
+    canvas.width  = document.documentElement.clientWidth;
+    canvas.height = document.documentElement.clientHeight;
+    let ctx       = canvas.getContext('2d');
+    ctx.fillStyle = "rgb(128, 128, 128)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+};
+
+let updateVisible = function(isVisible) {
+    let img = document.getElementById('popupimg');
+	img.style.visibility = isVisible ? "visible" : "hidden";
+}
+
+let updatePos = function(x, y) {
+    let img        = document.getElementById('popupimg');
+	imgx           += x;
+	imgy           += y;
+	img.style.left = imgx + "pt";
+	img.style.top  = imgy + "pt";
+}
+
+window.onload = function() {
+    console.log('onload');
+    update();
+};
+
+window.onresize = function() {
+    console.log('onresize');
+    update();
+};
+
+window.onkeydown = (event) => {
+    console.log('onkeydown');
+	if (event.code === "KeyV") {
+		updateVisible(true);
 	}
-
-    let updatePos = function(x, y) {
-        let img        = document.getElementById('popupimg');
-		imgx           += x;
-		imgy           += y;
-		img.style.left = imgx + "pt";
-		img.style.top  = imgy + "pt";
+	if (event.code === "KeyH") {
+		updateVisible(false);
 	}
-
-
-    window.onload = function() {
-        console.log('onload');
-        update();
-    };
-
-    window.onresize = function() {
-        console.log('onresize');
-        update();
-    };
-
-    window.onkeydown = (event) => {
-        console.log('onkeydown');
-		if (event.code === "KeyV") {
-			updateVisible(true);
-		}
-		if (event.code === "KeyH") {
-			updateVisible(false);
-		}
-		if (event.code === "KeyN") {
-			updatePos(0, 5);
-		}
-		if (event.code === "KeyP") {
-			updatePos(0, -5);
-		}
-    };
-
-    let mycanvas = document.createElement('canvas');
-
-    mycanvas.width  = 512;
-    mycanvas.height = 512;
-	// let myimage = drawFontImage(mycanvas, "rgb(255,  128, 128)", "5", "[1024]");
-	let myimage = drawPopUpImage(mycanvas, "rgb(255,  128, 128)", "5", "[1024]");
-
-	//drawDebugImage(mycanvas, "rgb(255,  128, 128)", "5", null);
-	//drawDebugImage(mycanvas, "rgb(255,  128, 128)", "View", null, true);
+	if (event.code === "KeyN") {
+		updatePos(0, 5);
+	}
+	if (event.code === "KeyP") {
+		updatePos(0, -5);
+	}
+};
 
 </script>
 </body>
