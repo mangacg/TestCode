@@ -26,8 +26,11 @@ var CV = CV || {};
 		pt.reset = function() {
 			this.popUpImage = null;
 			this.fontSize   = 16;
-			this.text       = '日本語のポップアップ';
+			this.text       = [ '日本語のポップアップ', 'テスト', '三行目です' ];
 			this.pos        = "up"; // ポップ表示位置(up,down.left,right).
+
+			this.bubblePath   = [];    // 吹き出しのパス(頂点リスト).
+			this.bubblePathBB = null;  // 吹き出しのパスのBoundingBox.
 		}
 
 		/**
@@ -43,40 +46,51 @@ var CV = CV || {};
 		pt.createImage = function() {
 			let canvas	   = document.createElement('canvas');
 			let	  ctx	   = canvas.getContext('2d');
-			const text     = '日本語のポップアップ';
+			const text     = this.text; // 1行目のみ. todo:
+			let bbSize     = new namespace.Vector2();
 
-			let strSize = this.drawString(ctx, text, 0, 0, false); // 文字列の描画サイズを取得.
+			// 文字列の描画サイズを取得.
+
+			//let textBB = this.drawText(ctx, text, 0, 0, false);
+			let textBB = this.drawTextArray(ctx, text, 0, 0, false);
+			textBB.getSize( bbSize );
+
+			// 吹き出しの情報を設定.
 
 			const mgn  = _kMarginStr; // 文字まわりのマージン
-
 			let info = {};
-			info.w  = strSize[0] + mgn*2; // 300;
-			info.h  = strSize[1] + mgn*2; // 100;
+			info.w  = bbSize.x + mgn*2; // 300;
+			info.h  = bbSize.y + mgn*2; // 100;
 			info.x0 = 0;
 			info.y0 = 0;
-			info.fl = 50;// 吹き出しの長さ.
+			info.fl = 50;  // 吹き出しの長さ.
 			info.f0 = 0.4; // 吹き出しの位置さ.
 			info.f1 = 0.5;
-			// info.dir = "up"; // "down";
+			info.pos = this.pos;
 
-			// 吹き出しのbboxを取得.
-			let bb = this.drawFukidaShi(ctx, info, 0, 0, false);
+			// 吹き出しパスとbboxを更新.
 
-			canvas.width  = bb.maxx - bb.minx + mgn*2;
-			canvas.height = bb.maxy - bb.miny + mgn*2;
-			ctx           = canvas.getContext('2d');
+			this.makeBubblePath(info);
+			let bb = this.bubblePathBB;
+			bb.getSize( bbSize );
 
-			// クリア
+			// 画像サイズ変更.
+			canvas.width  = bbSize.x + mgn*2;
+			canvas.height = bbSize.y + mgn*2;
 			ctx.fillStyle = "rgb(255,  128, 0)";
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.fillRect(0, 0, canvas.width, canvas.height); // todo test.
 			// ctx.clearRect(0, 0, width, height);
 
-			const offsetx = -bb.minx + _kMarginBuble; // 吹き出しまわりのマージン.
-			const offsety = -bb.miny + _kMarginBuble;
+			// 吹き出しを描画.
 
-			this.drawFukidaShi(ctx, info, offsetx, offsety);
+			const offsetx = -bb.min.x + _kMarginBuble; // 吹き出しまわりのマージン.
+			const offsety = -bb.min.y + _kMarginBuble;
+			this.drawBubble(ctx, offsetx, offsety);
 
-			this.drawString(ctx, text, offsetx + mgn, offsety + mgn);
+			// 吹き出しの中に文字を描画.
+
+			// this.drawText(ctx, text, offsetx + mgn, offsety + mgn);
+			this.drawTextArray(ctx, text, offsetx + mgn, offsety + mgn);
 
 			// Image生成.
 			let image = new Image();
@@ -89,20 +103,50 @@ var CV = CV || {};
 		};
 
 		/**
-		 * 文字を描画する.
+		 * 文字列を描画する.
+		 * @parm {context} ctx 2d context.
+		 * @parm {string} text 文字列.
+		 * @parm {number} offsetx 文字列の左上の座標 X.
+		 * @parm {number} offsety 文字列の左上の座標 Y.
+		 * @parm {Array} text stringの配列.
+		 * @parm {boolean} isDraw 描画を行うか?
 		 */
-		pt.drawString = function(ctx, text, offsetx=0, offsety=0, isDraw=true) {
-			ctx.translate(offsetx, offsety);
+		pt.drawTextArray = function(ctx, text, offsetx=0, offsety=0, isDraw=true) {
+			let bbOffset = new namespace.Vector2();
+			let bbText   = new namespace.Box2();
+			let y = 0; // 表示位置Y;
+
+			for (let t of text) {
+				let bb = this.drawText(ctx, t, offsetx, offsety + y, isDraw);
+
+				y += (bb.max.y - bb.min.y) + _kMarginStr;
+				bb.translate(new namespace.Vector2(0, y));
+				bbText.union(bb);
+			}
+			return bbText;
+		}
+
+		/**
+		 * 文字列を描画する.
+		 * @parm {context} ctx 2d context.
+		 * @parm {string} text 文字列.
+		 * @parm {number} offsetx 文字列の左上の座標 X.
+		 * @parm {number} offsety 文字列の左上の座標 Y.
+		 * @parm {boolean} isDraw 描画を行うか?
+		 * @return {Box2} バウンディングボックス. offsetの影響は受けない.
+		 */
+		pt.drawText = function(ctx, text, offsetx=0, offsety=0, isDraw=true) {
 			ctx.font   = String(this.fontSize) + 'pt Times';
 			let mesure = ctx.measureText( text );
-			//let textW  =  mesure.width;
-			// let textW  =  mesure.width;
-			let textW  = mesure.actualBoundingBoxRight - mesure.actualBoundingBoxLeft;
-			let textH  = mesure.actualBoundingBoxAscent + mesure.actualBoundingBoxDescent;
-			let x      = 0;
-			let y      = mesure.actualBoundingBoxAscent
+			let bb = new namespace.Box2();
+			bb.expandByPoint2( mesure.actualBoundingBoxLeft,  -mesure.actualBoundingBoxAscent);
+			bb.expandByPoint2( mesure.actualBoundingBoxRight,  mesure.actualBoundingBoxDescent);
+			let x      = 0; // -bb.min.x;
+			let y      = -bb.min.y;
 
 			if (isDraw) {
+				ctx.translate(offsetx, offsety);
+				
 				ctx.fillStyle = '#000';
 				ctx.fillText(text, x, y);
 
@@ -113,13 +157,14 @@ var CV = CV || {};
 				// default に戻す.
 				ctx.setTransform(1, 0, 0, 1, 0, 0); // 変形行列を単位行列に戻す
 			}
-			return [textW, textH];
+			//return [textW, textH];
+			return bb;
 		}
 
 		/**
-		 * 吹き出しの描画.
+		 * 吹き出しのパス(頂点リスト)を生成する.
 		 */
-		pt.drawFukidaShi = function(ctx, info, offsetx=0, offsety=0, isDraw=true) {
+		pt.makeBubblePath = function(info) {
 			function _lerp(a, b, t) {
 				return a + (b - a) * t;
 			};
@@ -128,6 +173,7 @@ var CV = CV || {};
 			const y0 = info.y0;
 			const x1 = x0 + info.w;
 			const y1 = y0 + info.h;
+			const pos = info.pos;
 
 			let path = [];
 			// 矩形.
@@ -137,43 +183,47 @@ var CV = CV || {};
 			path.push( [x0, y1] );
 
 			// 矩形に吹き出しの尖った部分を追加.
-			if (this.pos === "left") {
+			if (pos === "left") {
 				path.splice(4, 0,
 							[x0,      _lerp(y1, y0, info.f0)],
 							[x0 - fl, _lerp(y1, y0, info.f1)],
 							[x0,      _lerp(y1, y0, info.f1)] );
-			} else if (this.pos === "down") {
+			} else if (pos === "down") {
 				path.splice(3, 0,
 							[_lerp(x1, x0, info.f0), y1],
 							[_lerp(x1, x0, info.f1), y1 + info.fl],
 							[_lerp(x1, x0, info.f1), y1] );
-			} else if (this.pos === "right") {
+			} else if (pos === "right") {
 				path.splice(2, 0,
 							[x1,      _lerp(y0, y1, info.f0)],
 							[x1 + fl, _lerp(y0, y1, info.f1)],
 							[x1,      _lerp(y0, y1, info.f1)] );
 
-			} else if (this.pos === "up") {
+			} else if (pos === "up") {
 				path.splice(1, 0,
 							[_lerp(x0, x1, info.f0), y0],
 							[_lerp(x0, x1, info.f1), y0 - info.fl],
 							[_lerp(x0, x1, info.f1), y0] );
 			}
 
-			if (!isDraw) {
-				//let bb = { minx:path[0][0], maxx:path[0][0], miny:path[0][1], maxy:path[0][1] };
-				let bb = { minx:Infinity, maxx:-Infinity, miny:Infinity, maxy:-Infinity };
-				for (let pos of path) {
-					bb.minx = Math.min(bb.minx, pos[0]);
-					bb.maxx = Math.max(bb.maxx, pos[0]);
-					bb.miny = Math.min(bb.miny, pos[1]);
-					bb.maxy = Math.max(bb.maxy, pos[1]);
-				}
-				return bb;
+			// バウンディングボックスを取得.
+			let bb = new namespace.Box2();
+			for (let pos of path) {
+				bb.expandByPoint2( pos[0], pos[1] );
 			}
 
+			this.bubblePathBB = bb;
+			this.bubblePath   = path;
+			return path;
+		}
+
+		/**
+		 * 吹き出しの描画.
+		 */
+		pt.drawBubble = function(ctx, offsetx=0, offsety=0) {
+			const path = this.bubblePath;
+
 			ctx.translate(offsetx, offsety);
-			// ctx.rotate(10 * Math.PI / 180);
 
 			ctx.beginPath();
 			ctx.moveTo( path[0][0], path[0][1] );
