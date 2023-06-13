@@ -17,8 +17,8 @@ var CV = CV || {};
 		/**
 		 * 定数.
 		 */
-		const _kMarginStr   = 4; // 文字の外の余白.
-		const _kMarginBuble = 4; // 吹き出しの外の余白.
+		const _kMarginStr = 4; // 文字の外の余白.
+		const _kMargin    = 4; // 吹き出しの外の余白.
 
 		/**
 		 * リセット.
@@ -31,6 +31,7 @@ var CV = CV || {};
 
 			this.bubblePath   = [];    // 吹き出しのパス(頂点リスト).
 			this.bubblePathBB = null;  // 吹き出しのパスのBoundingBox.
+			this.bubbleDrawInfo = null;  // 吹き出し描画用の情報.
 		}
 
 		/**
@@ -59,10 +60,8 @@ var CV = CV || {};
 
 			const mgn  = _kMarginStr; // 文字まわりのマージン
 			let info = {};
-			info.w  = bbSize.x + mgn*2; // 300;
-			info.h  = bbSize.y + mgn*2; // 100;
-			info.x0 = 0;
-			info.y0 = 0;
+			info.w  = bbSize.x; // テキストの領域.
+			info.h  = bbSize.y;
 			info.fl = 50;  // 吹き出しの長さ.
 			info.f0 = 0.4; // 吹き出しの位置さ.
 			info.f1 = 0.5;
@@ -71,20 +70,17 @@ var CV = CV || {};
 			// 吹き出しパスとbboxを更新.
 
 			this.makeBubblePath(info);
-			let bb = this.bubblePathBB;
-			bb.getSize( bbSize );
 
 			// 画像サイズ変更.
-			canvas.width  = bbSize.x + mgn*2;
-			canvas.height = bbSize.y + mgn*2;
+			canvas.width  = this.bubbleDrawInfo.imageSize.w;
+			canvas.height = this.bubbleDrawInfo.imageSize.h;
 			ctx.fillStyle = "rgb(255,  128, 0)";
 			ctx.fillRect(0, 0, canvas.width, canvas.height); // todo test.
 			// ctx.clearRect(0, 0, width, height);
 
 			// 吹き出しを描画.
-
-			const offsetx = -bb.min.x + _kMarginBuble; // 吹き出しまわりのマージン.
-			const offsety = -bb.min.y + _kMarginBuble;
+			const offsetx = this.bubbleDrawInfo.pathPos.x;
+			const offsety = this.bubbleDrawInfo.pathPos.y;
 			this.drawBubble(ctx, offsetx, offsety);
 
 			// 吹き出しの中に文字を描画.
@@ -171,10 +167,13 @@ var CV = CV || {};
 				return a + (b - a) * t;
 			};
 
-			const x0 = info.x0;
-			const y0 = info.y0;
-			const x1 = x0 + info.w;
-			const y1 = y0 + info.h;
+			const mgn    = _kMargin;
+			const mgnS   = _kMarginStr;
+			
+			const x0 = 0;
+			const y0 = 0;
+			const x1 = x0 + info.w + mgnS * 2;
+			const y1 = y0 + info.h + mgnS * 2;
 			const pos = info.pos;
 
 			let path = [];
@@ -184,27 +183,33 @@ var CV = CV || {};
 			path.push( [x1, y1] );
 			path.push( [x0, y1] );
 
+			let origin = [0, 0];
+
 			// 矩形に吹き出しの尖った部分を追加.
 			if (pos === "left") {
 				path.splice(4, 0,
 							[x0,           _lerp(y1, y0, info.f0)],
 							[x0 - info.fl, _lerp(y1, y0, info.f1)],
 							[x0,           _lerp(y1, y0, info.f1)] );
+				origin = path[5];
 			} else if (pos === "down") {
 				path.splice(3, 0,
 							[_lerp(x1, x0, info.f0), y1],
 							[_lerp(x1, x0, info.f1), y1 + info.fl],
 							[_lerp(x1, x0, info.f1), y1] );
+				origin = path[4];
 			} else if (pos === "right") {
 				path.splice(2, 0,
 							[x1,      _lerp(y0, y1, info.f0)],
 							[x1 + fl, _lerp(y0, y1, info.f1)],
 							[x1,      _lerp(y0, y1, info.f1)] );
+				origin = path[3];
 			} else if (pos === "up") {
 				path.splice(1, 0,
 							[_lerp(x0, x1, info.f0), y0],
 							[_lerp(x0, x1, info.f1), y0 - info.fl],
 							[_lerp(x0, x1, info.f1), y0] );
+				origin = path[4];
 			}
 
 			// バウンディングボックスを取得.
@@ -213,16 +218,33 @@ var CV = CV || {};
 				bb.expandByPoint2( pos[0], pos[1] );
 			}
 
-			this.bubblePathBB = bb;
-			this.bubblePath   = path;
-			return path;
+			const bbRect = {x: bb.min.x, y:bb.min.y, w:bb.max.x-bb.min.x, h:bb.max.y-bb.min.y };
+			
+			let pathInfo = {};
+			pathInfo.drawInfo   = info;                        // 描画用のための情報.
+			
+			pathInfo.path       = path;                        // path
+			pathInfo.pathBB     = bbRect;                      // path座標でのpathのBB.
+			pathInfo.pathOrigin = {x:origin[0], y:origin[1]};   // path座標でのorigin.
+
+			pathInfo.imageSize  = {w:bbRect.w + mgn*2, h:bbRect.h + mgn*2};       // パスを描画するImageのサイズ.
+			pathInfo.pathPos    = {x:-bbRect.x + mgn, y:-bbRect.y + mgn};         // image座標でのpathの位置.
+			pathInfo.origin     = {x:pathInfo.pathOrigin.x + pathInfo.pathPos.x,
+								   y:pathInfo.pathOrigin.x + pathInfo.pathPos.y}; // image座標 での pathOrigin.
+			pathInfo.textArea   = {x:pathInfo.origin.x + mgnS,
+								   y:pathInfo.origin.y + mgnS,
+								   w:info.w,
+								   h:info.h}                                      // image 座標 での text area.
+
+
+			this.bubbleDrawInfo = pathInfo;
 		}
 
 		/**
 		 * 吹き出しの描画.
 		 */
 		pt.drawBubble = function(ctx, offsetx=0, offsety=0) {
-			const path = this.bubblePath;
+			const path = this.bubbleDrawInfo.path;
 
 			ctx.translate(offsetx, offsety);
 
