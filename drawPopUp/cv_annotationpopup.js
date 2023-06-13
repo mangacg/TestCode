@@ -4,7 +4,7 @@ var CV = CV || {};
 	'use strict';
 
 	/**
-	 * カット＆ペーストリクエストマネージャー.
+	 * 注釈ポップアップ画像管理.
 	 */
     namespace.AnnotationPopUpImage = (function() {
         var constructor = function(param) {
@@ -95,6 +95,8 @@ var CV = CV || {};
 			// Image生成.
 			let image = new Image();
 			image.src = canvas.toDataURL();
+			image.width  = canvas.width;
+			image.height = canvas.height;
 			image.onload = ()=>{
 				// console.log("test Image load done. : " + text0);
 			};
@@ -185,9 +187,9 @@ var CV = CV || {};
 			// 矩形に吹き出しの尖った部分を追加.
 			if (pos === "left") {
 				path.splice(4, 0,
-							[x0,      _lerp(y1, y0, info.f0)],
-							[x0 - fl, _lerp(y1, y0, info.f1)],
-							[x0,      _lerp(y1, y0, info.f1)] );
+							[x0,           _lerp(y1, y0, info.f0)],
+							[x0 - info.fl, _lerp(y1, y0, info.f1)],
+							[x0,           _lerp(y1, y0, info.f1)] );
 			} else if (pos === "down") {
 				path.splice(3, 0,
 							[_lerp(x1, x0, info.f0), y1],
@@ -198,7 +200,6 @@ var CV = CV || {};
 							[x1,      _lerp(y0, y1, info.f0)],
 							[x1 + fl, _lerp(y0, y1, info.f1)],
 							[x1,      _lerp(y0, y1, info.f1)] );
-
 			} else if (pos === "up") {
 				path.splice(1, 0,
 							[_lerp(x0, x1, info.f0), y0],

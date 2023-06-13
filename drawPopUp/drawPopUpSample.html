@@ -24,6 +24,13 @@ let imgy = 100;
 let popUpImage = new CV.AnnotationPopUpImage();
 let myimage    = popUpImage.createImage();
 
+let popUpInfo = {
+	rect: {x:10, y:10, w:100, h:100}, // 設定する矩形.
+	pos: "up", // ポップ表示位置(up,down.left,right).
+	direction: "vertical", // 縦書き横書き(vertical,horizontal).
+	string:"ポップの中に表示します。" // ポップ内の文字.
+};
+
 let update = function() {
     let img    = document.getElementById('popupimg');
 	img.src    = myimage.src;
