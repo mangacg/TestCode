@@ -51,6 +51,47 @@ let drawPopUpImage = function(canvas, bgColor, text0, text1, viewmode=false) {
 /**
  * 吹き出しの描画.
  */
+let drawFukidaShiInfo = function() {
+
+	/*
+	+--------------- image ------------------+
+	|                                        |
+	|   +------------ path --------------+   |
+	|   |                                |   |
+	|   |   +------------------------+   |   |
+	|   |   |  text area             |   |   |
+	|   |   |                        |   |   |
+	|   |   |                        |   |   |
+	|   |   |                        |   |   |
+	|   |   +------------------------+   |   |
+	|   |                                |   |
+	|   +--------------+   +-------------+   |
+	|                  |  /                  |
+	|                  | /                   |
+	|                  |/                    |
+	|                  + origin              |
+	|                                        |
+	+----------------------------------------+
+
+	
+	let info = {
+		path       : [...]         // path
+		pathBB     : {x, y, w, h}  // path座標でのpathのBB.
+		pathOrigin : {x, y}        // path座標でのorigin.
+		pathPos    : {x, y}        // image座標でのpathの位置.
+
+		imageSize  : {w, h}        // pathBB.wh + frameMargin * 2
+		origin     : {x, y}        // image座標 での pathOrigin.
+
+		textArea   : {x, y, w, h}  // image 座標 での text area.
+	};
+	*/
+
+}
+
+/**
+ * 吹き出しの描画.
+ */
 let drawFukidaShi = function(ctx, info, offsetx=0, offsety=0, isDraw=true) {
 	function _lerp(a, b, t) {
 		return a + (b - a) * t;
@@ -69,27 +110,31 @@ let drawFukidaShi = function(ctx, info, offsetx=0, offsety=0, isDraw=true) {
 	path.push( [x0, y1] );
 
 	// 矩形に吹き出しの尖った部分を追加.
+	let origin = [0, 0];
 	if (info.dir === "left") {
 		path.splice(4, 0,
 					[x0,      _lerp(y1, y0, info.f0)],
 					[x0 - fl, _lerp(y1, y0, info.f1)],
 					[x0,      _lerp(y1, y0, info.f1)] );
+		origin = path[5];
 	} else if (info.dir === "down") {
 		path.splice(3, 0,
 					[_lerp(x1, x0, info.f0), y1],
 					[_lerp(x1, x0, info.f1), y1 + info.fl],
 					[_lerp(x1, x0, info.f1), y1] );
+		origin = path[4];
 	} else if (info.dir === "right") {
 		path.splice(2, 0,
 					[x1,      _lerp(y0, y1, info.f0)],
 					[x1 + fl, _lerp(y0, y1, info.f1)],
 					[x1,      _lerp(y0, y1, info.f1)] );
-
+		origin = path[3];
 	} else if (info.dir === "up") {
 		path.splice(1, 0,
 					[_lerp(x0, x1, info.f0), y0],
 					[_lerp(x0, x1, info.f1), y0 - info.fl],
 					[_lerp(x0, x1, info.f1), y0] );
+		origin = path[4];
 	}
 
 	if (!isDraw) {
