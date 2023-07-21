@@ -28,9 +28,7 @@ var CV = CV || {};
 			this.fontSize   = 16;
 			this.text       = [ '日本語のポップアップ', 'テスト', '三行目です' ];
 			this.pos        = "up"; // ポップ表示位置(up,down.left,right).
-
-			this.bubblePath   = [];    // 吹き出しのパス(頂点リスト).
-			this.bubblePathBB = null;  // 吹き出しのパスのBoundingBox.
+			this.direction  = 'horizontal'; // 縦書き横書き(vertical,horizontal).
 			this.bubbleDrawInfo = null;  // 吹き出し描画用の情報.
 		}
 
@@ -58,7 +56,6 @@ var CV = CV || {};
 
 			// 吹き出しの情報を設定.
 
-			const mgn  = _kMarginStr; // 文字まわりのマージン
 			let info = {};
 			info.w  = bbSize.x; // テキストの領域.
 			info.h  = bbSize.y;
@@ -85,8 +82,7 @@ var CV = CV || {};
 
 			// 吹き出しの中に文字を描画.
 
-			// this.drawText(ctx, text, offsetx + mgn, offsety + mgn);
-			this.drawTextArray(ctx, text, offsetx + mgn, offsety + mgn);
+			this.drawTextArray(ctx, text, this.bubbleDrawInfo.textArea.x, this.bubbleDrawInfo.textArea.y);
 
 			// Image生成.
 			let image = new Image();
@@ -229,15 +225,34 @@ var CV = CV || {};
 
 			pathInfo.imageSize  = {w:bbRect.w + mgn*2, h:bbRect.h + mgn*2};       // パスを描画するImageのサイズ.
 			pathInfo.pathPos    = {x:-bbRect.x + mgn, y:-bbRect.y + mgn};         // image座標でのpathの位置.
-			pathInfo.origin     = {x:pathInfo.pathOrigin.x + pathInfo.pathPos.x,
-								   y:pathInfo.pathOrigin.x + pathInfo.pathPos.y}; // image座標 での pathOrigin.
-			pathInfo.textArea   = {x:pathInfo.origin.x + mgnS,
-								   y:pathInfo.origin.y + mgnS,
+			pathInfo.origin     = {x:pathInfo.pathOrigin.x + pathInfo.pathPos.x,  // image座標 での pathOrigin.
+								   y:pathInfo.pathOrigin.y + pathInfo.pathPos.y};
+			pathInfo.textArea   = {x:pathInfo.pathPos.x + mgnS,                   // image 座標 での text area.
+								   y:pathInfo.pathPos.y + mgnS,
 								   w:info.w,
-								   h:info.h}                                      // image 座標 での text area.
-
+								   h:info.h}
 
 			this.bubbleDrawInfo = pathInfo;
+			/*
+			  +--------------- image ------------------+
+			  |                                        |
+			  |   +------------ path --------------+   |
+			  |   |                                |   |
+			  |   |   +------------------------+   |   |
+			  |   |   |  text area             |   |   |
+			  |   |   |                        |   |   |
+			  |   |   |                        |   |   |
+			  |   |   |                        |   |   |
+			  |   |   +------------------------+   |   |
+			  |   |                                |   |
+			  |   +--------------+   +-------------+   |
+			  |                  |  /                  |
+			  |                  | /                   |
+			  |                  |/                    |
+			  |                  + origin              |
+			  |                                        |
+			  +----------------------------------------+
+			*/
 		}
 
 		/**
