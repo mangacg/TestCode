@@ -11,7 +11,7 @@ class paintController {
 		//this._context.fillStyle = 'rgba(255, 255, 0, 255)';
 		//this._context.fillRect(0, 0, canvas.width, canvas.height);
 
-		this._panel = new pantPanel();
+		this._panel = new paintPanel();
 
 		this._bindFunc = {};
 		this._brushImage = null;

@@ -1,7 +1,7 @@
 /**
  * ペイントパネル.
  */
-class pantPanel {
+class paintPanel {
 	constructor()
 	{
 		this._baseCanvas = document.createElement('canvas');
