@@ -87,11 +87,8 @@ class paintController {
 	setupEvent(elem,evName,evFunc,isActive)
 	{
 		// バインドされた関数を保持しておかないとremoveできない
-		let bindFunc = null;
-		if (this._bindFunc[evName])
-		{
-			bindFunc = this._bindFunc[evName];
-		}else{
+		let bindFunc = this._bindFunc[evName];
+		if (!bindFunc) {
 			bindFunc = evFunc.bind(this);
 			this._bindFunc[evName] = bindFunc;
 		}
