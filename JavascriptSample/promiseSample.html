@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>サンプル</title>
+</head>
+<body>
+  <script>
+	async function test(useAwait) {
+
+		console.log('(1)Top of Sample');
+		let prom = new Promise((resolve, reject)=>{
+			// 直ちに実行される.
+			console.log("(2)Do Promise");
+			resolve('Success');
+		});
+
+		console.log('(3)Created Promise');
+
+		prom.then((result) => {
+			console.log("(4)resolve = " + result);
+		});
+
+		if (useAwait) {
+		    let res = await prom;
+		    console.log("(4.5)resolve = " + res);
+		}
+
+		// Promise.resolve() sample
+		Promise.resolve('Success2').then((value) => {
+			console.log("(5)resolve2 = " + value);
+		});
+
+		console.log('(6)End of Sample');
+	}
+
+	async function main() {
+		console.log('------ main()');
+		console.log('--- test: no await');
+		await test(false);
+		console.log('--- test: await');
+		test(true);
+	}
+
+	function main2() {
+		console.log('------ main2()');
+		console.log('--- test: no await');
+		test(false).then(() => {
+			console.log('--- test: await');
+			test(true); // 
+		});
+	}
+
+	main();
+	//main2();
+
+</script>
+</body>
+</html>
